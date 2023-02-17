@@ -1,12 +1,12 @@
-#include "dependencies/rt.h"
-#include "dependencies/color.h"
-#include "dependencies/hittable_list.h"
-#include "dependencies/shpere.h"
-#include "dependencies/camera.h"
-#include "dependencies/material.h"
-#include "dependencies/rectangle.h"
-#include "dependencies/triangle.h"
-#include "dependencies/quad.h"
+#include "rt.h"
+#include "color.h"
+#include "hittable_list.h"
+#include "shpere.h"
+#include "camera.h"
+#include "material.h"
+#include "rectangle.h"
+#include "triangle.h"
+#include "quad.h"
 #include<iostream>
 
 #ifndef x_pos
