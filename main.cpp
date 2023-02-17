@@ -6,7 +6,7 @@
 #include "dependencies/material.h"
 #include "dependencies/rectangle.h"
 #include "dependencies/triangle.h"
-
+#include "dependencies/quad.h"
 #include<iostream>
 
 #ifndef x_pos
@@ -27,9 +27,9 @@ hittable_list random_scene() {
     // world.add(make_shared<sphere>(point3(-1.0,    0.0, -1.0),   0.5, material_left));
     // world.add(make_shared<sphere>(point3(-1.0,    0.0, -1.0),  -0.4, material_left));
     // world.add(make_shared<sphere>(point3( 1.0,    0.0, -1.0),   0.5, material_right));
-    world.add(make_shared<triangle>(vec3(4,0,0),vec3(4,-4,0),vec3(0,0,-10), material_center));
-    world.add(make_shared<triangle>(vec3(4,0,0),vec3(4,-4,0),vec3(0,0,10), material_center));
-    world.add(make_shared<triangle>(vec3(0,0,-10),vec3(0,0,10),vec3(4,0,0), material_center));
+    world.add(make_shared<quad>(vec3(20,0,-5),vec3(30,0,-5),vec3(30,30,-5),vec3(4,30,-5), material_center));
+    // world.add(make_shared<triangle>(vec3(4,0,0),vec3(4,-4,0),vec3(0,0,10), material_center));
+    // world.add(make_shared<triangle>(vec3(0,0,-10),vec3(0,0,10),vec3(4,0,0), material_center));
     
     return world;
 }
@@ -71,7 +71,7 @@ int main()
     auto world = random_scene();
 
     //Camera
-    point3 lookfrom(50,50,6);
+    point3 lookfrom(-20,-30,-100);
     point3 lookat(4,0,0);
     vec3 vup(0,1,0);
     auto dist_to_focus = (lookfrom-lookat).length();
