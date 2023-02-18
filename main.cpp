@@ -7,8 +7,9 @@
 #include "rectangle.h"
 #include "triangle.h"
 #include "quad.h"
+#include "parseObj.cpp"
 #include<iostream>
-
+#include<sstream>
 #ifndef x_pos
 #define x_pos 2
 #endif
@@ -21,15 +22,26 @@ hittable_list random_scene() {
     auto material_left   = make_shared<dielectric>(1.5);
     auto material_right  = make_shared<metal>(color(0.8, 0.6, 0.2), 0.0);
     auto material_rec  = make_shared<metal>(color(0.8, 0.6, 0.2), 0.0);
+    auto material2 = make_shared<lambertian>(color(0.52,0.14,0.19));
 
     // world.add(make_shared<sphere>(point3( 0.0, -100.5, -1.0), 100.0, material_ground));
     // world.add(make_shared<sphere>(point3( 0.0,    0.0, -1.0),   0.5, material_center));
     // world.add(make_shared<sphere>(point3(-1.0,    0.0, -1.0),   0.5, material_left));
     // world.add(make_shared<sphere>(point3(-1.0,    0.0, -1.0),  -0.4, material_left));
     // world.add(make_shared<sphere>(point3( 1.0,    0.0, -1.0),   0.5, material_right));
-    world.add(make_shared<quad>(vec3(20,0,-5),vec3(30,0,-5),vec3(30,30,-5),vec3(4,30,-5), material_center));
+    // world.add(make_shared<quad>(vec3(20,0,-5),vec3(30,0,-5),vec3(30,30,-5),vec3(4,30,-5), material_center));
     // world.add(make_shared<triangle>(vec3(4,0,0),vec3(4,-4,0),vec3(0,0,10), material_center));
     // world.add(make_shared<triangle>(vec3(0,0,-10),vec3(0,0,10),vec3(4,0,0), material_center));
+    std::string objFileLocation = "objFiles/monkey.obj";
+    readObjFile(objFileLocation);
+    for (const auto& face : quad_face) {
+        world.add(make_shared<quad>(vertices[face.at(0)-1],vertices[face.at(1)-1],vertices[face.at(2)-1],vertices[face.at(3)-1], material2));
+    }
+    for (const auto& face : triangle_face) {
+        world.add(make_shared<triangle>(vertices[face.at(0)-1],vertices[face.at(1)-1],vertices[face.at(2)-1], material2));
+    }
+    
+
     
     return world;
 }
@@ -61,22 +73,22 @@ int main()
 {
     //Image
     const auto aspect_ratio = 3.0 / 2.0;
-    const int img_width = 400;
+    const int img_width = 200;
     const int img_height = static_cast<int>(img_width/aspect_ratio);
-    const int samples_per_pixel = 50;
-    const int max_depth = 50;
+    const int samples_per_pixel = 20;
+    const int max_depth = 20;
     
 
     //World
     auto world = random_scene();
 
-    //Camera
-    point3 lookfrom(-20,-30,-100);
-    point3 lookat(4,0,0);
+    //Camera 30
+    point3 lookfrom(-30,-30,-100);
+    point3 lookat(1,1,1);
     vec3 vup(0,1,0);
     auto dist_to_focus = (lookfrom-lookat).length();
     auto aperture = 1.0;
-    camera cam(lookfrom, lookat, vup, 30, aspect_ratio, aperture, dist_to_focus);
+    camera cam(lookfrom, lookat, vup, 3, aspect_ratio, aperture, dist_to_focus);
     
 
     //Store color information into array 'a' and then write those pixels after processing
