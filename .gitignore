@@ -2,3 +2,5 @@ a.exe
 a.out
 .vscode
 test
+.cache/
+compile_commands.json
