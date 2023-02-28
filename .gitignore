@@ -4,3 +4,4 @@ a.out
 test
 .cache/
 compile_commands.json
+bin/

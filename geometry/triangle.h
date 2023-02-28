@@ -1,9 +1,12 @@
 #ifndef TRIANGLE_H
 #define TRIANGLE_H
 
-#include "rt.h"
+#include <memory>
 
+#include "../renderer/rt.h"
 #include "hittable.h"
+
+using std::shared_ptr;
 
 class triangle : public hittable {
     public:

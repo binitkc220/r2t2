@@ -2,17 +2,20 @@
 #define BVH_H_
 
 #include "aabb.h"
-#include "rt.h"
+#include "../renderer/rt.h"
 
 #include "hittable.h"
 #include "hittable_list.h"
 #include <algorithm>
 
+using std::shared_ptr;
+using std::make_shared;
+
 class bvh_node: public hittable {
 public:
     bvh_node ();
 
-    bvh_node (const hittable_list& list) : bvh_node(list.objects, 0, list.objects.size());
+    bvh_node (const hittable_list& list) : bvh_node(list.objects, 0, list.objects.size()) {};
 
     bvh_node (const std::vector<shared_ptr<hittable>>& src_objects, size_t start, size_t end);
 

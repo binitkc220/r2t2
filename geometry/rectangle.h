@@ -1,9 +1,10 @@
 #ifndef RECTANGLE_H
 #define RECTANGLE_H
 
-#include "rt.h"
-
 #include "hittable.h"
+#include "../renderer/rt.h"
+
+using std::shared_ptr;
 
 class xy_rect : public hittable {
     public:

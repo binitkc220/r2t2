@@ -1,9 +1,10 @@
 #ifndef QUAD_H
 #define QUAD_H
 
-#include "rt.h"
-
+#include "../renderer/rt.h"
 #include "hittable.h"
+
+using std::shared_ptr;
 
 class quad : public hittable {
     public:

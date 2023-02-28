@@ -1,18 +1,18 @@
-#include "rt.h"
-#include "color.h"
-#include "hittable_list.h"
-#include "shpere.h"
-#include "camera.h"
-#include "material.h"
-#include "rectangle.h"
-#include "triangle.h"
-#include "quad.h"
-#include "parseObj.cpp"
+#include "renderer/rt.h"
+#include "material/color.h"
+#include "geometry/hittable_list.h"
+#include "geometry/sphere.h"
+#include "renderer/camera.h"
+#include "renderer/rt.h"
+#include "material/material.h"
+#include "geometry/rectangle.h"
+#include "geometry/triangle.h"
+#include "geometry/quad.h"
+#include "geometry/parse_obj.h"
 #include<iostream>
 #include<sstream>
-#ifndef x_pos
-#define x_pos 2
-#endif
+
+using std::make_shared;
 
 hittable_list random_scene() {
     hittable_list world;
@@ -32,8 +32,11 @@ hittable_list random_scene() {
     // world.add(make_shared<quad>(vec3(20,0,-5),vec3(30,0,-5),vec3(30,30,-5),vec3(4,30,-5), material_center));
     // world.add(make_shared<triangle>(vec3(4,0,0),vec3(4,-4,0),vec3(0,0,10), material_center));
     // world.add(make_shared<triangle>(vec3(0,0,-10),vec3(0,0,10),vec3(4,0,0), material_center));
-    std::string objFileLocation = "objFiles/monkey.obj";
-    readObjFile(objFileLocation);
+    std::string objFileLocation = "asset/obj/monkey.obj";
+    std::vector<vec3> vertices;
+    std::vector<std::vector<int>> triangle_face;
+    std::vector<std::vector<int>> quad_face;
+    readObjFile(objFileLocation, vertices, triangle_face, quad_face);
     for (const auto& face : quad_face) {
         world.add(make_shared<quad>(vertices[face.at(0)-1],vertices[face.at(1)-1],vertices[face.at(2)-1],vertices[face.at(3)-1], material2));
     }
@@ -54,7 +57,7 @@ color rayColor(const ray& r, const hittable& world, int depth){
     if(depth<=0)
         return color(0,0,0);
     
-    if(world.hit(r,0.001,infinity,rec)){
+    if(world.hit(r,0.001,INF,rec)){
         ray scattered;
         color attenuation;
         if(rec.material_ptr->scatter(r,rec,attenuation,scattered))
@@ -101,7 +104,6 @@ int main()
 
     
     for (int j = img_height-1; j >= 0; --j) {
-        // #pragma omp parallel
         std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
         for (int i = 0; i < img_width; ++i) {
             color pixel_color(0, 0, 0);

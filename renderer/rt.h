@@ -6,18 +6,13 @@
 #include<memory>
 #include<random>
 
-//using
-using std::shared_ptr;
-using std::make_shared;
-using std::sqrt;
-
 //Constants
-const double infinity = std::numeric_limits<double>::infinity();
-const double pi = 3.1415926535897932385;
+const double INF = std::numeric_limits<double>::infinity();
+const double PI = 3.1415926535897932385;
 
 //Utility Functions
 inline double degree_to_radian(double degree){
-    return degree * pi / 180.0; 
+    return degree * PI / 180.0;
 }
 
 inline double random_double() {
@@ -43,8 +38,5 @@ inline double clamp(double x, double min, double max) {
 }
 
 //Common Headers
-
-#include "ray.h"
-#include "vec3.h"
 
 #endif

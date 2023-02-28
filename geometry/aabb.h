@@ -1,7 +1,9 @@
 #ifndef AABB_H_
 #define AABB_H_
 
-#include "rt.h"
+#include "../renderer/rt.h"
+#include "../renderer/vec3.h"
+#include "../renderer/ray.h"
 
 class aabb {
 public:

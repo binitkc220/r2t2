@@ -1,7 +1,10 @@
 #ifndef MATERIAL_H
 #define MATERIAL_H
 
-#include "rt.h"
+#include "../renderer/rt.h"
+#include "../renderer/vec3.h"
+#include "../renderer/ray.h"
+#include "../geometry/hittable.h"
 
 class material {
     public:

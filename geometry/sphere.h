@@ -3,7 +3,9 @@
 
 #include "aabb.h"
 #include "hittable.h"
-#include "vec3.h"
+#include "../renderer/vec3.h"
+
+using std::shared_ptr;
 
 class sphere : public hittable{
     public:

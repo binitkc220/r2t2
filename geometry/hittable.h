@@ -1,9 +1,11 @@
 #ifndef HITTABLE_H
 #define HITTABLE_H
 
-#include "ray.h"
-#include "rt.h"
+#include "../renderer/ray.h"
+#include "../renderer/rt.h"
 #include "aabb.h"
+
+using std::shared_ptr;
 
 class material;
 
