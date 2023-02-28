@@ -1,6 +1,7 @@
 #ifndef SPHERE_H
 #define SPHERE_H
 
+#include "aabb.h"
 #include "hittable.h"
 #include "vec3.h"
 
@@ -10,6 +11,7 @@ class sphere : public hittable{
         sphere(point3 cen, double r, shared_ptr<material> m) : center(cen), radius(r), mat_ptr(m) {};
         
         virtual bool hit(const ray& r, double t_min, double t_max, hit_record& rec) const override;
+        virtual bool bounding_box(aabb&) const override;
         
     public:
         point3 center;
@@ -44,6 +46,13 @@ bool sphere::hit(const ray& r, double t_min, double t_max, hit_record& rec) cons
     
     rec.material_ptr = mat_ptr;
     
+    return true;
+}
+
+bool sphere::bounding_box(aabb &output_box) const {
+    output_box = aabb(
+        center - vec3(radius, radius, radius),
+        center + vec3(radius, radius, radius));
     return true;
 }
 

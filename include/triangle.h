@@ -13,6 +13,7 @@ class triangle : public hittable {
             : v0(_v0), v1(_v1), v2(_v2), mp(mat) {};
 
         virtual bool hit(const ray& r, double t_min, double t_max, hit_record& rec) const override;
+        virtual bool bounding_box(aabb&) const override;
 
     public:
         shared_ptr<material> mp;
@@ -78,6 +79,10 @@ bool triangle::hit(const ray& r, double t_min, double t_max, hit_record& rec) co
 
     return true; // this ray hits the triangle
     
+}
+
+bool triangle::bounding_box(aabb& output_box) const {
+    return true;
 }
 
 #endif

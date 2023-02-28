@@ -73,9 +73,9 @@ int main()
 {
     //Image
     const auto aspect_ratio = 3.0 / 2.0;
-    const int img_width = 200;
+    const int img_width = 500;
     const int img_height = static_cast<int>(img_width/aspect_ratio);
-    const int samples_per_pixel = 20;
+    const int samples_per_pixel = 64;
     const int max_depth = 20;
     
 
