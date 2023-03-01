@@ -1,3 +1,4 @@
+#include "material/texture.h"
 #include "renderer/rt.h"
 #include "material/color.h"
 #include "geometry/hittable_list.h"
@@ -29,7 +30,8 @@ hittable_list random_scene() {
     hittable_list objs;
     hittable_list world;
 
-    objs.add(make_shared<sphere>(point3( 0.0, -100.5, -1.0), 100.0, material_ground));
+    auto checker = make_shared<checker_texture>(color(0.2, 0.3, 0.1), color(0.9, 0.9, 0.9));
+    objs.add(make_shared<sphere>(point3( 0.0, -100.5, -1.0), 100.0, make_shared<lambertian>(checker)));
     objs.add(make_shared<sphere>(point3( 0.0,    0.0, -1.0),   0.5, material_center));
     objs.add(make_shared<sphere>(point3(-1.0,    0.0, -1.0),   0.5, material_left));
     // world.add(make_shared<sphere>(point3(-1.0,    0.0, -1.0),  -0.4, material_left));
