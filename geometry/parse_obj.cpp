@@ -7,7 +7,8 @@
 #include "../renderer/rt.h"
 #include "../renderer/vec3.h"
 
-void readObjFile(std::string s, std::vector<vec3> &vertices, std::vector<std::vector<int>> &triangle_face, std::vector<std::vector<int>> &quad_face) {
+void readObjFile(std::string s, std::vector<vec3> &vertices,
+                 std::vector<std::vector<int>> &triangle_face, std::vector<std::vector<int>> &quad_face) {
     float x,y,z;
     std::ifstream file(s);
     std::string line;

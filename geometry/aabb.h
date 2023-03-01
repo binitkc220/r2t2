@@ -8,14 +8,14 @@
 class aabb {
 public:
     aabb () {}
-    aabb (const point3& a, const point3& b) : maximum(a), minimum(b) {}
+    aabb (const point3& a, const point3& b) : minimum(a), maximum(b) {}
 
     point3 min() const { return minimum; }
     point3 max() const { return maximum; }
 
     bool hit (const ray&, double, double) const;
-    point3 maximum;
     point3 minimum;
+    point3 maximum;
 };
 
 inline aabb surrounding_box(aabb box0, aabb box1) {
@@ -23,9 +23,9 @@ inline aabb surrounding_box(aabb box0, aabb box1) {
                  fmin(box0.min().y(), box1.min().y()),
                  fmin(box0.min().z(), box1.min().z()));
 
-    point3 big(fmax(box0.min().x(), box1.min().x()),
-               fmax(box0.min().y(), box1.min().y()),
-               fmax(box0.min().z(), box1.min().z()));
+    point3 big(fmax(box0.max().x(), box1.max().x()),
+               fmax(box0.max().y(), box1.max().y()),
+               fmax(box0.max().z(), box1.max().z()));
     return aabb(small, big);
 }
 

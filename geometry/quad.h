@@ -17,8 +17,8 @@ class quad : public hittable {
         virtual bool bounding_box(aabb&) const override;
 
     public:
-        shared_ptr<material> mp;
         vec3 v0, v1, v2, v3;
+        shared_ptr<material> mp;
 };
 
 bool quad::hit(const ray& r, double t_min, double t_max, hit_record& rec) const {
@@ -29,8 +29,7 @@ bool quad::hit(const ray& r, double t_min, double t_max, hit_record& rec) const 
     vec3 v0v2 = v2 - v0;
     // no need to normalize
     vec3 N = cross(v0v1, v0v2); // N
-    double area2 = N.length();
- 
+
     // Step 1: finding P
     
     // check if the ray and plane are parallel.
@@ -47,6 +46,10 @@ bool quad::hit(const ray& r, double t_min, double t_max, hit_record& rec) const 
     
     // check if the quad is behind the ray
     if (t < 0) return false; // the quad is behind
+
+    // bounds check for small and large t
+    if (t < t_min) return false;
+    if (t > t_max) return false;
  
     // compute the intersection point using equation 1
     vec3 P = r.origin() + t * r.direction();
@@ -98,7 +101,7 @@ bool quad::hit(const ray& r, double t_min, double t_max, hit_record& rec) const 
         return false;
     }
     rec.t = t;
-    auto outward_normal = vec3(0, 0, 1);
+    vec3 outward_normal = cross(v0v1, v0v2);
     rec.set_face_normal(r, outward_normal);
     rec.material_ptr = mp;
     rec.p = r.at(t);
@@ -108,6 +111,16 @@ bool quad::hit(const ray& r, double t_min, double t_max, hit_record& rec) const 
 }
 
 bool quad::bounding_box(aabb &output_box) const {
+    point3 min, max;
+    min = point3(
+        dmin4(v0.x(), v1.x(), v2.x(), v3.x()),
+        dmin4(v0.y(), v1.y(), v2.y(), v3.y()),
+        dmin4(v0.z(), v1.z(), v2.z(), v3.z()));
+    max = point3(
+        dmax4(v0.x(), v1.x(), v2.x(), v3.x()),
+        dmax4(v0.y(), v1.y(), v2.y(), v3.y()),
+        dmax4(v0.z(), v1.z(), v2.z(), v3.z()));
+    output_box = aabb(min, max);
     return true;
 }
 

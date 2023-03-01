@@ -1,7 +1,8 @@
 CXX     = g++
-CXXFLAGS = -Wall -Wextra
+CXXFLAGS = -Wpedantic -Wall -Wextra -std=c++17
 
 SRCS = $(shell find * -name "*.cpp")
+HEADERS = $(shell find * -name "*.h")
 OBJS = $(SRCS:.cpp=.o)
 EXE  = rt
 
@@ -24,7 +25,7 @@ debug: $(DBGEXE)
 $(DBGEXE): $(DBGOBJS)
 	$(CXX) $(CXXFLAGS) $(DBGCXXFLAGS) -o $(DBGEXE) $^
 
-$(DBGDIR)/%.o: %.cpp
+$(DBGDIR)/%.o: %.cpp $(HEADERS)
 	$(CXX) -c $(CXXFLAGS) $(DBGCXXFLAGS) -o $@ $<
 
 release: $(RELEXE)
@@ -32,7 +33,7 @@ release: $(RELEXE)
 $(RELEXE): $(RELOBJS)
 	$(CXX) $(CXXFLAGS) $(RELCXXFLAGS) -o $(RELEXE) $^
 
-$(RELDIR)/%.o: %.cpp
+$(RELDIR)/%.o: %.cpp $(HEADERS)
 	$(CXX) -c $(CXXFLAGS) $(RELCXXFLAGS) -o $@ $<
 
 prep:
