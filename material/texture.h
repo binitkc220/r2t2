@@ -2,6 +2,7 @@
 #define TEXTURE_H_
 
 #include "../renderer/vec3.h"
+#include "perlin.h"
 
 using std::shared_ptr, std::make_shared;
 
@@ -42,6 +43,19 @@ class checker_texture : public texture {
         }
 
         shared_ptr<texture> even, odd;
+};
+
+class noise_texture : public texture {
+public:
+    noise_texture() {}
+    noise_texture(double sc) : scale(sc) {}
+
+    virtual color value(double u, double v, const point3& p) const override {
+        return color(1,1,1) * 0.5 * (1 + sin(scale*p.z() + 10 * noise.turb(scale*p)));
+    }
+
+    perlin noise;
+    double scale;
 };
 
 #endif // TEXTURE_H_

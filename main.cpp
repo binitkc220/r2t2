@@ -18,7 +18,21 @@
 
 using std::make_shared;
 
+hittable_list two_perlin_spheres() {
+    hittable_list objects;
+
+    auto perlin_texture = make_shared<noise_texture>(4);
+    objects.add(make_shared<sphere>(point3(0,-1000,0), 1000, make_shared<lambertian>(perlin_texture)));
+    objects.add(make_shared<sphere>(point3(0, 2, 0), 2, make_shared<lambertian>(perlin_texture)));
+
+    return objects;
+}
+
 hittable_list random_scene() {
+
+    auto perlin = make_shared<noise_texture>();
+    auto perlin_lambert = make_shared<lambertian>(perlin);
+    auto checker = make_shared<checker_texture>(color(0.2, 0.3, 0.1), color(0.9, 0.9, 0.9));
 
     auto material_ground = make_shared<lambertian>(color(0.8, 0.8, 0.0));
     auto material_center = make_shared<lambertian>(color(0.1, 0.2, 0.5));
@@ -30,8 +44,7 @@ hittable_list random_scene() {
     hittable_list objs;
     hittable_list world;
 
-    auto checker = make_shared<checker_texture>(color(0.2, 0.3, 0.1), color(0.9, 0.9, 0.9));
-    objs.add(make_shared<sphere>(point3( 0.0, -100.5, -1.0), 100.0, make_shared<lambertian>(checker)));
+    objs.add(make_shared<sphere>(point3( 0.0, -100.5, -1.0), 100.0, material_center));
     objs.add(make_shared<sphere>(point3( 0.0,    0.0, -1.0),   0.5, material_center));
     objs.add(make_shared<sphere>(point3(-1.0,    0.0, -1.0),   0.5, material_left));
     // world.add(make_shared<sphere>(point3(-1.0,    0.0, -1.0),  -0.4, material_left));
@@ -48,7 +61,7 @@ hittable_list random_scene() {
         objs.add(make_shared<quad>(vertices[face.at(0)-1],vertices[face.at(1)-1],vertices[face.at(2)-1],vertices[face.at(3)-1], material_center));
     }
     for (const auto& face : triangle_face) {
-        objs.add(make_shared<triangle>(vertices[face.at(0)-1],vertices[face.at(1)-1],vertices[face.at(2)-1], material_center));
+        objs.add(make_shared<triangle>(vertices[face.at(0)-1],vertices[face.at(1)-1],vertices[face.at(2)-1], perlin_lambert));
     }
 
     world.add(make_shared<bvh_node>(objs));
@@ -96,8 +109,9 @@ int main(int argc, char** argv)
 {
     //Image
     const auto aspect_ratio = 3.0 / 2.0;
-    const int img_width = 800;
+    const int img_width = 400;
     const int img_height = static_cast<int>(img_width/aspect_ratio);
+    double vfov = 20.0;
     int samples_per_pixel = 100;
     int max_depth = 16;
 
@@ -112,12 +126,13 @@ int main(int argc, char** argv)
     auto world = random_scene();
 
     //Camera 30
-    point3 lookfrom(0,0,200);
+    point3 lookfrom(7, 2, 3);
     point3 lookat(0,0,0);
     vec3 vup(0,1,0);
     auto dist_to_focus = (lookfrom-lookat).length();
-    auto aperture = 1.0;
-    camera cam(lookfrom, lookat, vup, 3, aspect_ratio, aperture, dist_to_focus);
+    dist_to_focus = 10.0;
+    auto aperture = 0.1;
+    camera cam(lookfrom, lookat, vup, vfov, aspect_ratio, aperture, dist_to_focus);
     
 
     //Store color information into array 'a' and then write those pixels after processing
