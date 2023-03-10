@@ -48,3 +48,6 @@ remake: clean all
 clean:
 	rm -f $(RELEXE) $(RELOBJS) $(DBGEXE) $(DBGOBJS)
 
+image:
+	$(RELEXE) > ./asset/gen/image.ppm
+	magick ./asset/gen/image.ppm ./asset/gen/image.png
