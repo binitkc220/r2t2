@@ -12,9 +12,9 @@
 #include "geometry/quad.h"
 #include "geometry/parse_obj.h"
 #include <cstdlib>
-#include<iostream>
+#include <iostream>
 #include <memory>
-#include<sstream>
+#include <sstream>
 
 using std::make_shared;
 
@@ -58,7 +58,7 @@ hittable_list random_scene() {
     std::vector<std::vector<int>> quad_face;
     readObjFile(objFileLocation, vertices, triangle_face, quad_face);
     for (const auto& face : quad_face) {
-        objs.add(make_shared<quad>(vertices[face.at(0)-1],vertices[face.at(1)-1],vertices[face.at(2)-1],vertices[face.at(3)-1], material_center));
+        objs.add(make_shared<quad>(vertices[face.at(0)-1],vertices[face.at(1)-1],vertices[face.at(2)-1],vertices[face.at(3)-1], perlin_lambert));
     }
     for (const auto& face : triangle_face) {
         objs.add(make_shared<triangle>(vertices[face.at(0)-1],vertices[face.at(1)-1],vertices[face.at(2)-1], perlin_lambert));
