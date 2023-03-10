@@ -1,7 +1,8 @@
 #ifndef COLOR_H
 #define COLOR_H
 
-#include "vec3.h"
+#include "../renderer/vec3.h"
+
 #include<iostream>
 
 void writeColor(std::ostream &out, color pixel_color, int samples_per_pixel){

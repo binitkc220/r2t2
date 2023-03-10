@@ -1,9 +1,10 @@
 #ifndef RECTANGLE_H
 #define RECTANGLE_H
 
-#include "rt.h"
-
 #include "hittable.h"
+#include "../renderer/rt.h"
+
+using std::shared_ptr;
 
 class xy_rect : public hittable {
     public:
@@ -16,8 +17,8 @@ class xy_rect : public hittable {
         virtual bool hit(const ray& r, double t_min, double t_max, hit_record& rec) const override;
 
     public:
-        shared_ptr<material> mp;
         double x0, x1, y0, y1, k;
+        shared_ptr<material> mp;
 };
 
 bool xy_rect::hit(const ray& r, double t_min, double t_max, hit_record& rec) const {

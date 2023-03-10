@@ -1,8 +1,11 @@
 #ifndef SPHERE_H
 #define SPHERE_H
 
+#include "aabb.h"
 #include "hittable.h"
-#include "vec3.h"
+#include "../renderer/vec3.h"
+
+using std::shared_ptr;
 
 class sphere : public hittable{
     public:
@@ -10,11 +13,21 @@ class sphere : public hittable{
         sphere(point3 cen, double r, shared_ptr<material> m) : center(cen), radius(r), mat_ptr(m) {};
         
         virtual bool hit(const ray& r, double t_min, double t_max, hit_record& rec) const override;
+        virtual bool bounding_box(aabb&) const override;
         
     public:
         point3 center;
         double radius;
         shared_ptr<material> mat_ptr;
+
+    private:
+        static void get_sphere_uv(const point3& p, double& u, double& v) {
+            auto theta = acos(-p.y());
+            auto phi = atan2(-p.z(), p.x()) + PI;
+
+            u = phi / (2 * PI);
+            v = theta / PI;
+        }
 };
 
 bool sphere::hit(const ray& r, double t_min, double t_max, hit_record& rec) const{
@@ -41,9 +54,18 @@ bool sphere::hit(const ray& r, double t_min, double t_max, hit_record& rec) cons
 
     vec3 outward_normal = (rec.p - center) / radius;
     rec.set_face_normal(r,outward_normal);
+
+    get_sphere_uv(outward_normal, rec.u, rec.v);
     
     rec.material_ptr = mat_ptr;
     
+    return true;
+}
+
+bool sphere::bounding_box(aabb &output_box) const {
+    output_box = aabb(
+        center - vec3(radius, radius, radius),
+        center + vec3(radius, radius, radius));
     return true;
 }
 

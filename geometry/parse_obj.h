@@ -1,14 +1,16 @@
+#ifndef PARSE_OBJ_H_
+#define PARSE_OBJ_H_
+
 #include <iostream>
 #include <fstream>
-#include <vector>
 #include <string>
 #include <sstream>
-#include "vec3.h"
-std::vector<vec3> vertices;
-std::vector<std::vector<int>> triangle_face;
-std::vector<std::vector<int>> quad_face;
 
-void readObjFile(std::string s) {
+#include "../renderer/rt.h"
+#include "../renderer/vec3.h"
+
+static void readObjFile(std::string s, std::vector<vec3> &vertices,
+                 std::vector<std::vector<int>> &triangle_face, std::vector<std::vector<int>> &quad_face) {
     float x,y,z;
     std::ifstream file(s);
     std::string line;
@@ -37,3 +39,5 @@ void readObjFile(std::string s) {
         }
     }
 }
+
+#endif // PARSE_OBJ_H_
