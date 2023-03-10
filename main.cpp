@@ -40,13 +40,16 @@ hittable_list random_scene() {
     auto material_right  = make_shared<metal>(color(0.8, 0.6, 0.2), 0.0);
     auto material_rec  = make_shared<metal>(color(0.8, 0.6, 0.2), 0.0);
     auto material2 = make_shared<lambertian>(color(0.52,0.14,0.19));
+    auto earth_texture = make_shared<image_texture>("asset/texture_images/earthmap.jpg");
+    auto earth_surface = make_shared<lambertian>(earth_texture);
 
     hittable_list objs;
     hittable_list world;
 
     objs.add(make_shared<sphere>(point3( 0.0, -100.5, -1.0), 100.0, material_center));
-    objs.add(make_shared<sphere>(point3( 0.0,    0.0, -1.0),   0.5, material_center));
-    objs.add(make_shared<sphere>(point3(-1.0,    0.0, -1.0),   0.5, material_left));
+    // objs.add(make_shared<sphere>(point3( 0.0,    0.0, -1.0),   0.5, material_center));
+    // objs.add(make_shared<sphere>(point3(-1.0,    0.0, -1.0),   0.5, material_left));
+    objs.add(make_shared<sphere>(point3(0,1.0,0), 1, earth_surface));
     // world.add(make_shared<sphere>(point3(-1.0,    0.0, -1.0),  -0.4, material_left));
     // world.add(make_shared<sphere>(point3( 1.0,    0.0, -1.0),   0.5, material_right));
     // world.add(make_shared<quad>(vec3(20,0,-5),vec3(30,0,-5),vec3(30,30,-5),vec3(4,30,-5), material_center));
@@ -56,7 +59,7 @@ hittable_list random_scene() {
     std::vector<vec3> vertices;
     std::vector<std::vector<int>> triangle_face;
     std::vector<std::vector<int>> quad_face;
-    readObjFile(objFileLocation, vertices, triangle_face, quad_face);
+    // readObjFile(objFileLocation, vertices, triangle_face, quad_face);
     for (const auto& face : quad_face) {
         objs.add(make_shared<quad>(vertices[face.at(0)-1],vertices[face.at(1)-1],vertices[face.at(2)-1],vertices[face.at(3)-1], perlin_lambert));
     }
@@ -126,7 +129,7 @@ int main(int argc, char** argv)
     auto world = random_scene();
 
     //Camera 30
-    point3 lookfrom(7, 2, 3);
+    point3 lookfrom(7, 4, 10);
     point3 lookat(0,0,0);
     vec3 vup(0,1,0);
     auto dist_to_focus = (lookfrom-lookat).length();
