@@ -86,26 +86,24 @@ hittable_list random_scene() {
 }
 
 
-color rayColor(const ray& r, const hittable& world, int depth){
+color rayColor(const ray& r, const color& background, const hittable& world, int depth){
     hit_record rec;
 
     //If ray bounce limit is exceeded, no more light is gathered
     if(depth<=0)
         return color(0,0,0);
     
-    if(world.hit(r,0.001,INF,rec)){
-        ray scattered;
-        color attenuation;
-        if(rec.material_ptr->scatter(r,rec,attenuation,scattered))
-            return attenuation*rayColor(scattered, world, depth-1);
-        return color(0,0,0);
-        // point3 target = rec.p + random_in_hemisphere(rec.normal);
-        // return 0.5 * rayColor(ray(rec.p, target-rec.p), world, depth-1);
+    if(!world.hit(r,0.001,INF,rec)){
+        return background;
     }
+    ray scattered;
+    color attenuation;
+    color emitted = rec.material_ptr->emitted(rec.u,rec.v,rec.p);
 
-    vec3 unit_direction = unitVector(r.direction());
-    auto t=0.5*(unit_direction.y()+1.0);
-    return (1.0-t)*color(1.0,1.0,1.0)+t*color(0.5,0.7,1.0);
+    if(!rec.material_ptr->scatter(r,rec,attenuation,scattered))
+        return emitted;
+
+    return emitted + attenuation * rayColor(scattered, background, world, depth-1);
 }
 
 int main(int argc, char** argv)
@@ -135,6 +133,8 @@ int main(int argc, char** argv)
     auto dist_to_focus = (lookfrom-lookat).length();
     dist_to_focus = 10.0;
     auto aperture = 0.1;
+    color background(4,4,4);
+
     camera cam(lookfrom, lookat, vup, vfov, aspect_ratio, aperture, dist_to_focus);
     
 
@@ -155,7 +155,7 @@ int main(int argc, char** argv)
                 auto u = (i + random_double()) / (img_width-1);
                 auto v = (j + random_double()) / (img_height-1);
                 ray r = cam.get_ray(u, v);
-                pixel_color += rayColor(r, world, max_depth);
+                pixel_color += rayColor(r, background, world, max_depth);
             }
             a[i*img_height+j] = pixel_color;  
         }
