@@ -28,6 +28,22 @@ hittable_list two_perlin_spheres() {
     return objects;
 }
 
+hittable_list scene_with_light() {
+    hittable_list objs, world;
+    auto material_center = make_shared<lambertian>(color(0.1, 0.2, 0.5));
+    auto earth_texture = make_shared<image_texture>("asset/texture_images/earthmap.jpg");
+    auto earth_surface = make_shared<lambertian>(earth_texture);
+    objs.add(make_shared<sphere>(point3( 0.0, -100.5, -1.0), 100.0, material_center));
+    objs.add(make_shared<sphere>(point3(0,1.0,0), 1, earth_surface));
+
+    auto difflight = make_shared<diffuse_light>(color(7,7,7));
+    objs.add(make_shared<sphere>(point3(2.0,3.0,1.0),0.8, difflight));
+
+    world.add(make_shared<bvh_node>(objs));
+
+    return world;
+}
+
 hittable_list random_scene() {
 
     auto perlin = make_shared<noise_texture>();
@@ -110,10 +126,10 @@ int main(int argc, char** argv)
 {
     //Image
     const auto aspect_ratio = 3.0 / 2.0;
-    const int img_width = 400;
+    const int img_width = 800;
     const int img_height = static_cast<int>(img_width/aspect_ratio);
     double vfov = 20.0;
-    int samples_per_pixel = 100;
+    int samples_per_pixel = 400;
     int max_depth = 16;
 
     if (argc == 3) {
@@ -124,7 +140,7 @@ int main(int argc, char** argv)
     std::cerr << "Running with " << samples_per_pixel << " samples and depth " << max_depth << std::endl;
 
     //World
-    auto world = random_scene();
+    auto world = scene_with_light();
 
     //Camera 30
     point3 lookfrom(7, 4, 10);
@@ -133,7 +149,7 @@ int main(int argc, char** argv)
     auto dist_to_focus = (lookfrom-lookat).length();
     dist_to_focus = 10.0;
     auto aperture = 0.1;
-    color background(4,4,4);
+    color background(0,0,0);
 
     camera cam(lookfrom, lookat, vup, vfov, aspect_ratio, aperture, dist_to_focus);
     
