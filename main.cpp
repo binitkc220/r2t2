@@ -28,6 +28,22 @@ hittable_list two_perlin_spheres() {
     return objects;
 }
 
+hittable_list scene_with_light() {
+    hittable_list objs, world;
+    auto material_center = make_shared<lambertian>(color(0.1, 0.2, 0.5));
+    auto earth_texture = make_shared<image_texture>("asset/texture_images/earthmap.jpg");
+    auto earth_surface = make_shared<lambertian>(earth_texture);
+    objs.add(make_shared<sphere>(point3( 0.0, -100.5, -1.0), 100.0, material_center));
+    objs.add(make_shared<sphere>(point3(0,1.0,0), 1, earth_surface));
+
+    auto difflight = make_shared<diffuse_light>(color(7,7,7));
+    objs.add(make_shared<sphere>(point3(2.0,3.0,1.0),0.8, difflight));
+
+    world.add(make_shared<bvh_node>(objs));
+
+    return world;
+}
+
 hittable_list random_scene() {
 
     auto perlin = make_shared<noise_texture>();
@@ -40,13 +56,16 @@ hittable_list random_scene() {
     auto material_right  = make_shared<metal>(color(0.8, 0.6, 0.2), 0.0);
     auto material_rec  = make_shared<metal>(color(0.8, 0.6, 0.2), 0.0);
     auto material2 = make_shared<lambertian>(color(0.52,0.14,0.19));
+    auto earth_texture = make_shared<image_texture>("asset/texture_images/earthmap.jpg");
+    auto earth_surface = make_shared<lambertian>(earth_texture);
 
     hittable_list objs;
     hittable_list world;
 
     objs.add(make_shared<sphere>(point3( 0.0, -100.5, -1.0), 100.0, material_center));
-    objs.add(make_shared<sphere>(point3( 0.0,    0.0, -1.0),   0.5, material_center));
-    objs.add(make_shared<sphere>(point3(-1.0,    0.0, -1.0),   0.5, material_left));
+    // objs.add(make_shared<sphere>(point3( 0.0,    0.0, -1.0),   0.5, material_center));
+    // objs.add(make_shared<sphere>(point3(-1.0,    0.0, -1.0),   0.5, material_left));
+    objs.add(make_shared<sphere>(point3(0,1.0,0), 1, earth_surface));
     // world.add(make_shared<sphere>(point3(-1.0,    0.0, -1.0),  -0.4, material_left));
     // world.add(make_shared<sphere>(point3( 1.0,    0.0, -1.0),   0.5, material_right));
     // world.add(make_shared<quad>(vec3(20,0,-5),vec3(30,0,-5),vec3(30,30,-5),vec3(4,30,-5), material_center));
@@ -56,7 +75,7 @@ hittable_list random_scene() {
     std::vector<vec3> vertices;
     std::vector<std::vector<int>> triangle_face;
     std::vector<std::vector<int>> quad_face;
-    readObjFile(objFileLocation, vertices, triangle_face, quad_face);
+    // readObjFile(objFileLocation, vertices, triangle_face, quad_face);
     for (const auto& face : quad_face) {
         objs.add(make_shared<quad>(vertices[face.at(0)-1],vertices[face.at(1)-1],vertices[face.at(2)-1],vertices[face.at(3)-1], perlin_lambert));
     }
@@ -83,36 +102,34 @@ hittable_list random_scene() {
 }
 
 
-color rayColor(const ray& r, const hittable& world, int depth){
+color rayColor(const ray& r, const color& background, const hittable& world, int depth){
     hit_record rec;
 
     //If ray bounce limit is exceeded, no more light is gathered
     if(depth<=0)
         return color(0,0,0);
     
-    if(world.hit(r,0.001,INF,rec)){
-        ray scattered;
-        color attenuation;
-        if(rec.material_ptr->scatter(r,rec,attenuation,scattered))
-            return attenuation*rayColor(scattered, world, depth-1);
-        return color(0,0,0);
-        // point3 target = rec.p + random_in_hemisphere(rec.normal);
-        // return 0.5 * rayColor(ray(rec.p, target-rec.p), world, depth-1);
+    if(!world.hit(r,0.001,INF,rec)){
+        return background;
     }
+    ray scattered;
+    color attenuation;
+    color emitted = rec.material_ptr->emitted(rec.u,rec.v,rec.p);
 
-    vec3 unit_direction = unitVector(r.direction());
-    auto t=0.5*(unit_direction.y()+1.0);
-    return (1.0-t)*color(1.0,1.0,1.0)+t*color(0.5,0.7,1.0);
+    if(!rec.material_ptr->scatter(r,rec,attenuation,scattered))
+        return emitted;
+
+    return emitted + attenuation * rayColor(scattered, background, world, depth-1);
 }
 
 int main(int argc, char** argv)
 {
     //Image
     const auto aspect_ratio = 3.0 / 2.0;
-    const int img_width = 400;
+    const int img_width = 800;
     const int img_height = static_cast<int>(img_width/aspect_ratio);
     double vfov = 20.0;
-    int samples_per_pixel = 100;
+    int samples_per_pixel = 400;
     int max_depth = 16;
 
     if (argc == 3) {
@@ -123,15 +140,17 @@ int main(int argc, char** argv)
     std::cerr << "Running with " << samples_per_pixel << " samples and depth " << max_depth << std::endl;
 
     //World
-    auto world = random_scene();
+    auto world = scene_with_light();
 
     //Camera 30
-    point3 lookfrom(7, 2, 3);
+    point3 lookfrom(7, 4, 10);
     point3 lookat(0,0,0);
     vec3 vup(0,1,0);
     auto dist_to_focus = (lookfrom-lookat).length();
     dist_to_focus = 10.0;
     auto aperture = 0.1;
+    color background(0,0,0);
+
     camera cam(lookfrom, lookat, vup, vfov, aspect_ratio, aperture, dist_to_focus);
     
 
@@ -152,7 +171,7 @@ int main(int argc, char** argv)
                 auto u = (i + random_double()) / (img_width-1);
                 auto v = (j + random_double()) / (img_height-1);
                 ray r = cam.get_ray(u, v);
-                pixel_color += rayColor(r, world, max_depth);
+                pixel_color += rayColor(r, background, world, max_depth);
             }
             a[i*img_height+j] = pixel_color;  
         }

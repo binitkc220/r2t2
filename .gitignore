@@ -5,3 +5,4 @@ test
 .cache/
 compile_commands.json
 bin/
+asset/gen/image.ppm
