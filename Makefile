@@ -5,7 +5,7 @@ IMGUI_DIR = external/imgui
 
 SRCS = main.cpp
 SRCS += $(IMGUI_DIR)/backends/imgui_impl_sdl2.cpp
-SRCS += $(IMGUI_DIR)/backends/imgui_impl_opengl2.cpp
+SRCS += $(IMGUI_DIR)/backends/imgui_impl_sdlrenderer.cpp
 SRCS += $(IMGUI_DIR)/imgui.cpp
 SRCS += $(IMGUI_DIR)/imgui_draw.cpp
 SRCS += $(IMGUI_DIR)/imgui_widgets.cpp

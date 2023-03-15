@@ -8,7 +8,9 @@
 class camera {
     public:
         //vfov = vertical field-of-view in degrees
-        camera(point3 lookfrom, point3 lookat, vec3 vup, double vfov, double aspect_ratio, double aperture, double focus_dist){
+        camera(point3 lookfrom, point3 lookat, vec3 vup = vec3(0,1,0),
+               double vfov=20.0, double aspect_ratio=3.0/2.0,
+               double aperture=0.1, double focus_dist=10.0){
             auto theta = degree_to_radian(vfov);
             auto h = tan(theta/2);
 
@@ -33,7 +35,7 @@ class camera {
             return ray(origin+offset, lower_left_corner+s*horizontal+t*vertical-origin-offset);
         }
 
-    private:
+    public:
         point3 origin;
         point3 lower_left_corner;
         vec3 horizontal;

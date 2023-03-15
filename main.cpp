@@ -1,63 +1,45 @@
-#include "material/texture.h"
-#include "renderer/rt.h"
-#include "material/color.h"
-#include "geometry/hittable_list.h"
-#include "geometry/sphere.h"
-#include "renderer/camera.h"
-#include "renderer/rt.h"
-#include "material/material.h"
+#include "SDL_events.h"
+#include "SDL_keyboard.h"
+#include "SDL_keycode.h"
 #include "geometry/bvh.h"
-#include "geometry/rectangle.h"
-#include "geometry/triangle.h"
+#include "geometry/hittable_list.h"
 #include "geometry/quad.h"
 #include "geometry/parse_obj.h"
+#include "geometry/rectangle.h"
+#include "geometry/sphere.h"
+#include "geometry/triangle.h"
+
+#include "material/material.h"
+#include "material/color.h"
+#include "material/texture.h"
+
+#include "renderer/camera.h"
+#include "renderer/rt.h"
+
+#include "external/imgui/imgui.h"
+#include "external/imgui/backends/imgui_impl_sdl2.h"
+#include "external/imgui/backends/imgui_impl_sdlrenderer.h"
+
+#include <SDL2/SDL.h>
+#include <SDL_pixels.h>
+#include <SDL_render.h>
+#include <SDL_video.h>
+
+#include <cstdint>
 #include <cstdlib>
 #include <iostream>
 #include <memory>
 #include <sstream>
 
-#include "external/imgui/imgui.h"
-#include "external/imgui/backends/imgui_impl_sdl2.h"
-#include "external/imgui/backends/imgui_impl_opengl2.h"
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_opengl.h>
-
 using std::make_shared;
 
 const int SCREEN_HEIGHT = 720;
-const int SCREEN_WIDTH = 600;
-ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-class ui_state {
-
-public:
-    ui_state() {
-        if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0) {
-            std::cerr << "[ERROR] Could not initialize SDL: " << SDL_GetError() << std::endl;
-        }
-
-        this->window = SDL_CreateWindow("Raytracer",
-                                     SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                                     SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-
-        if (this->window == NULL) {
-            std::cerr << "[ERROR] Could not create window: " << SDL_GetError() << std::endl;
-        }
-
-        this->renderer = SDL_CreateRenderer(this->window, -1, SDL_RENDERER_SOFTWARE);
-        if (this->renderer == NULL) {
-            std::cerr << "[ERROR] Could not initialize renderer: " << SDL_GetError() << std::endl;
-        }
-    }
-    ~ ui_state() {
-        SDL_DestroyWindow(this->window);
-        SDL_Quit();
-    }
-public:
-    SDL_Window* window;
-    SDL_Renderer* renderer;
-    SDL_Texture* framebuffer_texture;
-    SDL_Surface* framebuffer_surface;
-};
+const int SCREEN_WIDTH = 1280;
+const ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+const double aspect_ratio = 3.0 / 2.0;
+const int img_width = 200;
+const int img_height = static_cast<int>(img_width/aspect_ratio);
+const double vfov = 20.0;
 
 hittable_list two_perlin_spheres() {
     hittable_list objects;
@@ -150,24 +132,8 @@ color rayColor(const ray& r, const hittable& world, int depth){
 int main(int argc, char** argv)
 {
     //Image
-    const auto aspect_ratio = 3.0 / 2.0;
-    const int img_width = 100;
-    const int img_height = static_cast<int>(img_width/aspect_ratio);
-    double vfov = 20.0;
     int samples_per_pixel = 100;
     int max_depth = 16;
-
-    ui_state ui_state1;
-
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO() ; (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-
-    ImGui::StyleColorsDark();
-
-    ImGui_ImplSDL2_InitForOpenGL(ui_state1.window, ui_state1.renderer);
-    ImGui_ImplOpenGL2_Init();
 
     if (argc == 3) {
         samples_per_pixel = atoi(argv[1]);
@@ -183,10 +149,41 @@ int main(int argc, char** argv)
     point3 lookfrom(7, 2, 3);
     point3 lookat(0,0,0);
     vec3 vup(0,1,0);
-    auto dist_to_focus = (lookfrom-lookat).length();
-    dist_to_focus = 10.0;
-    auto aperture = 0.1;
-    camera cam(lookfrom, lookat, vup, vfov, aspect_ratio, aperture, dist_to_focus);
+    camera cam(lookfrom, lookat);
+
+    static float d2f=10.0f, pwaal=0.1f;
+
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) {
+        return -1;
+    }
+
+    SDL_WindowFlags window_flags = (SDL_WindowFlags) (SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+    SDL_Window* window = SDL_CreateWindow("R2T2",
+                                          SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                                          SCREEN_WIDTH, SCREEN_HEIGHT,
+                                          window_flags);
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1,
+                                                SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
+
+    if (renderer == NULL)
+        return -1;
+
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
+
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
+    ImGui_ImplSDLRenderer_Init(renderer);
+
+    SDL_Texture* texture;
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, img_width, img_height);
+
+    uint32_t *pixels;
 
     //Store color information into array 'a' and then write those pixels after processing
     color *a;
@@ -196,55 +193,100 @@ int main(int argc, char** argv)
 
     std::cout << "P3\n" << img_width << " " << img_height << "\n255\n";
 
-
     bool done = false;
+
     while (!done) {
+
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
             ImGui_ImplSDL2_ProcessEvent(&event);
             if (event.type == SDL_QUIT)
                 done = true;
-            if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(ui_state1.window))
+            if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window))
+                done = true;
+            if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_w)
                 done = true;
         }
-        ImGui_ImplOpenGL2_NewFrame();
+
+        cam = camera(lookfrom, lookat, vup, vfov, aspect_ratio, pwaal, d2f);
+
+        for (int j = img_height-1; j >= 0; --j) {
+            std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
+            for (int i = 0; i < img_width; ++i) {
+                color pixel_color(0, 0, 0);
+                for (int s = 0; s < samples_per_pixel; ++s) {
+                    auto u = (i + random_double()) / (img_width-1);
+                    auto v = (j + random_double()) / (img_height-1);
+                    ray r = cam.get_ray(u, v);
+                    pixel_color += rayColor(r, world, max_depth);
+                }
+                a[i*img_height+j] = pixel_color/samples_per_pixel;
+            }
+        }
+
+        int pitch = img_width * 3;
+        uint32_t format;
+        SDL_QueryTexture(texture, &format, NULL, NULL, NULL);
+        SDL_LockTexture(texture, NULL, (void**) &pixels, &pitch);
+
+        SDL_PixelFormat *pixelFormat = SDL_AllocFormat(format);
+
+        for (int j = 0; j < img_height; ++j) {
+            for (int i = 0; i < img_width; ++i) {
+                uint8_t red   = static_cast<uint8_t>(256.0 * clamp(a[i*img_height+j].x(), 0.0, 0.999));
+                uint8_t green = static_cast<uint8_t>(256.0 * clamp(a[i*img_height+j].y(), 0.0, 0.999));
+                uint8_t blue  = static_cast<uint8_t>(256.0 * clamp(a[i*img_height+j].y(), 0.0, 0.999));
+                j = img_height - j - 1;
+                pixels[j * img_width + i] = SDL_MapRGB(pixelFormat, red, green, blue);
+            }
+        }
+
+        SDL_UnlockTexture(texture);
+
+        ImGui_ImplSDLRenderer_NewFrame();
         ImGui_ImplSDL2_NewFrame();
         ImGui::NewFrame();
 
         ImGui::Begin("Renderer Window");
+
         ImGui::Text("This is some text");
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+
+        ImGui::SliderFloat("pwaal", &pwaal, 0.0001f, 3.0f);
+        ImGui::SliderFloat("d2f", &d2f, 0.0001f, 1.0f);
+
         ImGui::End();
 
         ImGui::Render();
-        glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-        glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
-        glClear(GL_COLOR_BUFFER_BIT);
-        //glUseProgram(0); // You may want this if using this code in an OpenGL 3+ context where shaders may be bound
-        ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
-        SDL_GL_SwapWindow(ui_state1.window);
-    }
-    
-    for (int j = img_height-1; j >= 0; --j) {
-        std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
-        for (int i = 0; i < img_width; ++i) {
-            color pixel_color(0, 0, 0);
-            for (int s = 0; s < samples_per_pixel; ++s) {
-                auto u = (i + random_double()) / (img_width-1);
-                auto v = (j + random_double()) / (img_height-1);
-                ray r = cam.get_ray(u, v);
-                pixel_color += rayColor(r, world, max_depth);
-            }
-            a[i*img_height+j] = pixel_color;  
-        }
+        SDL_RenderSetScale(renderer, io.DisplayFramebufferScale.x, io.DisplayFramebufferScale.y);
+        SDL_SetRenderDrawColor(renderer,
+                               (uint8_t)(clear_color.x*255),
+                               (uint8_t)(clear_color.y*255),
+                               (uint8_t)(clear_color.z*255),
+                               (uint8_t)(clear_color.w*255));
+        SDL_RenderClear(renderer);
+        SDL_RenderCopy(renderer, texture, nullptr, nullptr);
+        ImGui_ImplSDLRenderer_RenderDrawData(ImGui::GetDrawData());
+        SDL_RenderPresent(renderer);
     }
 
     for (int j = img_height-1; j >= 0; --j) {
         for (int i = 0; i < img_width; ++i) {
-            // writeColor(std::cout, a[i*img_height+j], samples_per_pixel);
+            writeColor(std::cout, a[i*img_height+j], samples_per_pixel);
         }
     }
     std::cerr << std::endl;
+
+    ImGui_ImplSDLRenderer_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_DestroyTexture(texture);
+
+    SDL_Quit();
+
+    return 0;
 
 }
