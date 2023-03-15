@@ -1,43 +1,105 @@
-#ifndef PARSE_OBJ_H_
-#define PARSE_OBJ_H_
-
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <sstream>
+#define TINYOBJLOADER_IMPLEMENTATION
+// #define TINYOBJLOADER_USE_DOUBLE
+#include "../external/tiny_obj_loader.h"
+#include <vector>
+// #include "../renderer/vec3.h"
 
 #include "../renderer/rt.h"
 #include "../renderer/vec3.h"
+#include "../geometry/bvh.h"
+#include "../geometry/hittable_list.h"
+#include "../material/material.h"
+#include "../material/perlin.h"
+#include "../material/texture.h"
 
-static void readObjFile(std::string s, std::vector<vec3> &vertices,
-                 std::vector<std::vector<int>> &triangle_face, std::vector<std::vector<int>> &quad_face) {
-    float x,y,z;
-    std::ifstream file(s);
-    std::string line;
+hittable_list mesh(std::string objFile, std::string textureFile)
+{
+    hittable_list objs, world;
+    auto perlin = make_shared<noise_texture>();
+    auto perlin_lambert = make_shared<lambertian>(perlin);
+    auto material = make_shared<lambertian>(color(1, 0, 0));
+    auto image = make_shared<image_texture>("asset/texture_images/car1.png");
+    auto car = make_shared<lambertian>(image);
 
-    while (std::getline(file, line)) {
-        if (line.substr(0, 2) == "v ") {
-            std::istringstream ss(line.substr(2));
-            ss >> x >> y >> z;
-            vec3 v(x,y,z);
-            vertices.push_back(v);
-        } else if (line.substr(0, 2) == "f ") {
-            std::istringstream ss(line.substr(2));
-            std::vector<int> face;
-            std::string token;
-            while (ss >> token) {
-                std::istringstream ts(token);
-                int f;
-                ts >> f;
-                face.push_back(f);
+    std::string inputfile = "asset/obj/cube.obj";
+    tinyobj::ObjReaderConfig reader_config;
+
+    tinyobj::ObjReader reader;
+
+    if (!reader.ParseFromFile(inputfile, reader_config))
+    {
+        if (!reader.Error().empty())
+        {
+            std::cerr << "TinyObjReader: " << reader.Error();
+        }
+        exit(1);
+    }
+
+    if (!reader.Warning().empty())
+    {
+        std::cout << "TinyObjReader: " << reader.Warning();
+    }
+
+    auto &attrib = reader.GetAttrib();
+    auto &shapes = reader.GetShapes();
+    std::vector<vec3> vert;
+    std::vector<vec3> text;
+
+    // Loop over shapes
+    for (size_t s = 0; s < shapes.size(); s++)
+    {
+        // Loop over faces(polygon)
+        size_t index_offset = 0;
+        for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++)
+        {
+            size_t fv = size_t(shapes[s].mesh.num_face_vertices[f]);
+
+            // Loop over vertices in the face.
+            for (size_t v = 0; v < fv; v++)
+            {
+                // access to vertex
+                tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
+                tinyobj::real_t vx = attrib.vertices[3 * size_t(idx.vertex_index) + 0];
+                tinyobj::real_t vy = attrib.vertices[3 * size_t(idx.vertex_index) + 1];
+                tinyobj::real_t vz = attrib.vertices[3 * size_t(idx.vertex_index) + 2];
+                // std::cerr << "Vertices :  ";
+                // std::cerr << vx << " " << vy << " " << vz;
+                vec3 vxyz(vx, vy, vz);
+                vert.push_back(vxyz);
+                // Check if `texcoord_index` is zero or positive. negative = no texcoord data
+                if (idx.texcoord_index >= 0)
+                {
+                    tinyobj::real_t tx = attrib.texcoords[2 * size_t(idx.texcoord_index) + 0];
+                    tinyobj::real_t ty = attrib.texcoords[2 * size_t(idx.texcoord_index) + 1];
+                    vec3 t(tx, ty, 0);
+                    text.push_back(t);
+                    // std::cerr<<"   texture "<< tx << " " << ty << std::endl;
+                }
+
+                // render triangle if three vertex information are pushed to vector
+                // if (count == 3)
+                // {
+                //     objs.add(make_shared<triangle>(vert.at(0), vert.at(1), vert.at(2), text.at(0), text.at(1), text.at(2), car));
+                //     vert.clear();
+                //     text.clear();
+                //     count = 0;
+                // }
+
+                // Check if `normal_index` is zero or positive. negative = no normal data
+                //   if (idx.normal_index >= 0) {
+                //     tinyobj::real_t nx = attrib.normals[3*size_t(idx.normal_index)+0];
+                //     tinyobj::real_t ny = attrib.normals[3*size_t(idx.normal_index)+1];
+                //     tinyobj::real_t nz = attrib.normals[3*size_t(idx.normal_index)+2];
+                //   }
             }
-            if (face.size() == 3) {
-                triangle_face.push_back(face);
-            } else if (face.size() == 4) {
-                quad_face.push_back(face);
-            }
+            // std::cerr<<"Reached here";
+            // std::cerr << "Next face"<<std::endl;
+            objs.add(make_shared<triangle>(vert.at(0), vert.at(1), vert.at(2), text.at(0), text.at(1), text.at(2), car));
+            vert.clear();
+            text.clear();
+            index_offset += fv;
+
         }
     }
+    return objs;
 }
-
-#endif // PARSE_OBJ_H_

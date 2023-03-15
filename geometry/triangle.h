@@ -13,14 +13,15 @@ class triangle : public hittable {
     public:
         triangle() {}
 
-        triangle(vec3 _v0, vec3 _v1, vec3 _v2, shared_ptr<material> mat)
-            : v0(_v0), v1(_v1), v2(_v2), mp(mat) {};
+        triangle(vec3 _v0, vec3 _v1, vec3 _v2, vec3 _uv0, vec3 _uv1, vec3 _uv2, shared_ptr<material> mat)
+            : v0(_v0), v1(_v1), v2(_v2), uv0(_uv0), uv1(_uv1), uv2(_uv2), mp(mat) {};
 
         virtual bool hit(const ray& r, double t_min, double t_max, hit_record& rec) const override;
         virtual bool bounding_box(aabb&) const override;
 
     public:
         vec3 v0, v1, v2;
+        vec3 uv0, uv1, uv2;
         shared_ptr<material> mp;
 };
 
@@ -37,11 +38,11 @@ bool triangle::hit(const ray& r, double t_min, double t_max, hit_record& rec) co
     
     // check if the ray and plane are parallel.
     double NdotRayDirection = dot(N,r.direction());
-    if (fabs(NdotRayDirection) < 0.0000001) // almost 0
+    if (fabs(NdotRayDirection) < 0.0000000001) // almost 0
         return false; // they are parallel, so they don't intersect! 
 
     // compute d parameter using equation 2
-    double d = dot(v0,-N);
+    double d = -dot(N,v0);
     
     // compute t (equation 3)
     double t = -(dot(N,r.origin()) + d) / NdotRayDirection;
@@ -56,7 +57,7 @@ bool triangle::hit(const ray& r, double t_min, double t_max, hit_record& rec) co
  
     // compute the intersection point using equation 1
     vec3 P = r.origin() + t * r.direction();
- 
+
     // Step 2: inside-outside test
     vec3 C; // vector perpendicular to triangle's plane
  
@@ -85,6 +86,15 @@ bool triangle::hit(const ray& r, double t_min, double t_max, hit_record& rec) co
     rec.material_ptr = mp;
     rec.p = r.at(t);
 
+    //uv mappng
+    // double Baryv0 = ((v1.y()-v2.y())*(P.x()-v2.x()) + (v2.x()-v1.x())*(P.y()-v2.y())) / ((v1.y()-v2.y())*(v0.x()-v2.x()) + (v2.x()-v1.x())*(v0.y()-v2.y()));
+    // double Baryv1 = ((v2.y()-v0.y())*(P.x()-v2.x()) + (v0.x()-v2.x())*(P.y()-v2.y())) / ((v1.y()-v2.y())*(v0.x()-v2.x()) + (v2.x()-v1.x())*(v0.y()-v2.y()));
+    // double Baryv2 = 1 - Baryv0 - Baryv1;
+    // rec.u = Baryv0*uv0.x() + Baryv1*uv1.x() + Baryv2*uv2.x();
+    // rec.v = Baryv0*uv0.y() + Baryv1*uv1.y() + Baryv2*uv2.y();
+    rec.u = 0.333*uv0.x() + 0.333*uv1.x() + 0.333*uv2.x();
+    rec.v = 0.333*uv0.y() + 0.333*uv1.y() + 0.333*uv2.y();
+    
     return true; // this ray hits the triangle
     
 }
