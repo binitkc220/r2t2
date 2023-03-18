@@ -24,6 +24,9 @@
 #include "scenes/two_perlin_spheres.h"
 #include "scenes/random_scene.h"
 
+#define TINYOBJLOADER_IMPLEMENTATION
+#include "external/tiny_obj_loader.h"
+
 #include <SDL2/SDL.h>
 #include <SDL_pixels.h>
 #include <SDL_render.h>

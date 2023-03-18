@@ -1,4 +1,6 @@
-#define TINYOBJLOADER_IMPLEMENTATION
+#ifndef GEOMETRY_PARSE_OBJ_HH
+#define GEOMETRY_PARSE_OBJ_HH
+
 #define TINYOBJLOADER_USE_DOUBLE
 #include "../external/tiny_obj_loader.h"
 #include <vector>
@@ -6,17 +8,18 @@
 #include "../renderer/vec3.h"
 #include "../geometry/bvh.h"
 #include "../geometry/hittable_list.h"
+#include "../geometry/triangle.h"
 #include "../material/material.h"
 #include "../material/perlin.h"
 #include "../material/texture.h"
 
-hittable_list mesh(std::string objFile, std::string textureFile)
+static inline hittable_list mesh(std::string objFile, std::string textureFile)
 {
     hittable_list objs, world;
     auto perlin = make_shared<noise_texture>();
     auto perlin_lambert = make_shared<lambertian>(perlin);
     auto material = make_shared<lambertian>(color(1, 0, 0));
-    auto image = make_shared<image_texture>("asset/texture_images/car1.png");
+    auto image = make_shared<image_texture>(textureFile);
     auto car = make_shared<lambertian>(image);
 
     std::string inputfile = objFile;
@@ -88,3 +91,5 @@ hittable_list mesh(std::string objFile, std::string textureFile)
     world.add(make_shared<bvh_node>(objs));
     return world;
 }
+
+#endif
