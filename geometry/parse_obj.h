@@ -1,9 +1,7 @@
 #define TINYOBJLOADER_IMPLEMENTATION
-// #define TINYOBJLOADER_USE_DOUBLE
+#define TINYOBJLOADER_USE_DOUBLE
 #include "../external/tiny_obj_loader.h"
 #include <vector>
-// #include "../renderer/vec3.h"
-
 #include "../renderer/rt.h"
 #include "../renderer/vec3.h"
 #include "../geometry/bvh.h"
@@ -21,7 +19,7 @@ hittable_list mesh(std::string objFile, std::string textureFile)
     auto image = make_shared<image_texture>("asset/texture_images/car1.png");
     auto car = make_shared<lambertian>(image);
 
-    std::string inputfile = "asset/obj/cube.obj";
+    std::string inputfile = objFile;
     tinyobj::ObjReaderConfig reader_config;
 
     tinyobj::ObjReader reader;
@@ -37,7 +35,7 @@ hittable_list mesh(std::string objFile, std::string textureFile)
 
     if (!reader.Warning().empty())
     {
-        std::cout << "TinyObjReader: " << reader.Warning();
+        std::cerr << "TinyObjReader: " << reader.Warning();
     }
 
     auto &attrib = reader.GetAttrib();
@@ -59,11 +57,10 @@ hittable_list mesh(std::string objFile, std::string textureFile)
             {
                 // access to vertex
                 tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
-                tinyobj::real_t vx = attrib.vertices[3 * size_t(idx.vertex_index) + 0];
-                tinyobj::real_t vy = attrib.vertices[3 * size_t(idx.vertex_index) + 1];
-                tinyobj::real_t vz = attrib.vertices[3 * size_t(idx.vertex_index) + 2];
-                // std::cerr << "Vertices :  ";
-                // std::cerr << vx << " " << vy << " " << vz;
+                size_t index = 3 * size_t(idx.vertex_index);
+                tinyobj::real_t vx = attrib.vertices[index + 0];
+                tinyobj::real_t vy = attrib.vertices[index + 1];
+                tinyobj::real_t vz = attrib.vertices[index + 2];
                 vec3 vxyz(vx, vy, vz);
                 vert.push_back(vxyz);
                 // Check if `texcoord_index` is zero or positive. negative = no texcoord data
@@ -73,17 +70,7 @@ hittable_list mesh(std::string objFile, std::string textureFile)
                     tinyobj::real_t ty = attrib.texcoords[2 * size_t(idx.texcoord_index) + 1];
                     vec3 t(tx, ty, 0);
                     text.push_back(t);
-                    // std::cerr<<"   texture "<< tx << " " << ty << std::endl;
                 }
-
-                // render triangle if three vertex information are pushed to vector
-                // if (count == 3)
-                // {
-                //     objs.add(make_shared<triangle>(vert.at(0), vert.at(1), vert.at(2), text.at(0), text.at(1), text.at(2), car));
-                //     vert.clear();
-                //     text.clear();
-                //     count = 0;
-                // }
 
                 // Check if `normal_index` is zero or positive. negative = no normal data
                 //   if (idx.normal_index >= 0) {
@@ -92,14 +79,12 @@ hittable_list mesh(std::string objFile, std::string textureFile)
                 //     tinyobj::real_t nz = attrib.normals[3*size_t(idx.normal_index)+2];
                 //   }
             }
-            // std::cerr<<"Reached here";
-            // std::cerr << "Next face"<<std::endl;
             objs.add(make_shared<triangle>(vert.at(0), vert.at(1), vert.at(2), text.at(0), text.at(1), text.at(2), car));
             vert.clear();
             text.clear();
             index_offset += fv;
-
         }
     }
-    return objs;
+    world.add(make_shared<bvh_node>(objs));
+    return world;
 }

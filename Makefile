@@ -50,4 +50,4 @@ clean:
 
 image:
 	$(RELEXE) > ./asset/gen/image.ppm
-	magick ./asset/gen/image.ppm ./asset/gen/image.png
+	convert ./asset/gen/image.ppm ./asset/gen/image.png

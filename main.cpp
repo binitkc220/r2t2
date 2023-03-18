@@ -10,7 +10,7 @@
 #include "geometry/rectangle.h"
 #include "geometry/triangle.h"
 #include "geometry/quad.h"
-#include "geometry/parse.h"
+#include "geometry/parse_obj.h"
 #include <cstdlib>
 #include <iostream>
 #include <memory>
@@ -154,7 +154,7 @@ int main(int argc, char** argv)
     const int img_width = 200;
     const int img_height = static_cast<int>(img_width/aspect_ratio);
     double vfov = 20.0;
-    int samples_per_pixel = 10;
+    int samples_per_pixel = 100;
     int max_depth = 4;
 
     if (argc == 3) {
