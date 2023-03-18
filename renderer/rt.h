@@ -37,39 +37,19 @@ inline double clamp(double x, double min, double max) {
 }
 
 inline double dmin3(double x, double y, double z) {
-    if (x < y && x < z)
-        return x;
-    if (y < x && y < z)
-        return y;
-    return z;
+    return fmin(x,(fmin(y,z)));
 }
 
 inline double dmax3(double x, double y, double z) {
-    if (x > y && x > z)
-        return x;
-    if (y > x && y > z)
-        return y;
-    return z;
+    return fmax(x,(fmax(y,z)));
 }
 
 inline double dmin4(double x, double y, double z, double w) {
-    if (x < y && x < z && x < w)
-        return x;
-    if (y < x && y < z && y < w)
-        return y;
-    if (z < x && z < y && z < w)
-        return z;
-    return w;
+    return fmin(x,(fmin(y,fmin(z,w))));
 }
 
 inline double dmax4(double x, double y, double z, double w) {
-    if (x > y && x > z && x > w)
-        return x;
-    if (y > x && y > z && y > w)
-        return y;
-    if (z > x && z > y && z > w)
-        return z;
-    return w;
+    return fmax(x,(fmax(y,fmax(z,w))));
 }
 
 //Common Headers
