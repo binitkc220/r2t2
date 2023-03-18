@@ -102,13 +102,13 @@ bool triangle::hit(const ray& r, double t_min, double t_max, hit_record& rec) co
     double Baryv2 = 1 - Baryv0 - Baryv1;
     rec.u = Baryv0*uv0.x() + Baryv1*uv1.x() + Baryv2*uv2.x();
     rec.v = Baryv0*uv0.y() + Baryv1*uv1.y() + Baryv2*uv2.y();
-    std::cerr << "v0 = " << v0.x() << " " << v0.y() << " " << v0.z() << std::endl;
-    std::cerr << "v1 = " << v1.x() << " " << v1.y() << " " << v1.z() << std::endl;
-    std::cerr << "v2 = " << v2.x() << " " << v2.y() << " " << v2.z() << std::endl;
-    std::cerr << "P = " << P.x() << " " << P.y() << " " << P.z() << std::endl;
-    std::cerr << "Numerator = " << ((v1.y()-v2.y())*(P.x()-v2.x()) + (v2.x()-v1.x())*(P.y()-v2.y())) << std::endl;
-    std::cerr << "denominator = " << den0 << std::endl;
-    std::cerr << Baryv0 << " " << Baryv1 << " " << Baryv2 << " " << rec.u << " " << rec.v << std::endl;
+    // std::cerr << "v0 = " << v0.x() << " " << v0.y() << " " << v0.z() << std::endl;
+    // std::cerr << "v1 = " << v1.x() << " " << v1.y() << " " << v1.z() << std::endl;
+    // std::cerr << "v2 = " << v2.x() << " " << v2.y() << " " << v2.z() << std::endl;
+    // std::cerr << "P = " << P.x() << " " << P.y() << " " << P.z() << std::endl;
+    // std::cerr << "Numerator = " << ((v1.y()-v2.y())*(P.x()-v2.x()) + (v2.x()-v1.x())*(P.y()-v2.y())) << std::endl;
+    // std::cerr << "denominator = " << den0 << std::endl;
+    // std::cerr << Baryv0 << " " << Baryv1 << " " << Baryv2 << " " << rec.u << " " << rec.v << std::endl;
     
     return true; // this ray hits the triangle
     
