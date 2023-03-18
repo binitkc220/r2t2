@@ -1,5 +1,5 @@
 CXX     = g++
-CXXFLAGS = -Wpedantic -Wall -Wextra -std=c++17 `sdl2-config --cflags` `sdl2-config --libs` -lGL
+CXXFLAGS = -Wpedantic -Wall -Wextra -std=c++17 `sdl2-config --cflags`
 
 IMGUI_DIR = external/imgui
 
@@ -12,6 +12,7 @@ SRCS += $(IMGUI_DIR)/imgui_widgets.cpp
 SRCS += $(IMGUI_DIR)/imgui_tables.cpp
 HEADERS=$(shell find * -name "*.h")
 INCLUDES = $(IMGUI_DIR) $(IMGUI_DIR)/backends
+LIBS = `sdl2-config --libs`
 OBJS = $(SRCS:.cpp=.o)
 EXE  = rt
 
@@ -32,7 +33,7 @@ all: prep release
 debug: $(DBGEXE)
 
 $(DBGEXE): $(DBGOBJS)
-	$(CXX) $(CXXFLAGS) $(DBGCXXFLAGS) -o $(DBGEXE) $^
+	$(CXX) $(CXXFLAGS) $(DBGCXXFLAGS) -o $(DBGEXE) $^ $(LIBS)
 
 $(DBGDIR)/%.o: %.cpp $(HEADERS)
 	$(CXX) -c $(CXXFLAGS) $(DBGCXXFLAGS) -I $(INCLUDES) -o $@ $<
@@ -40,7 +41,7 @@ $(DBGDIR)/%.o: %.cpp $(HEADERS)
 release: $(RELEXE)
 
 $(RELEXE): $(RELOBJS)
-	$(CXX) $(CXXFLAGS) $(RELCXXFLAGS) -o $(RELEXE) $^
+	$(CXX) $(CXXFLAGS) $(RELCXXFLAGS) -o $(RELEXE) $^ $(LIBS)
 
 $(RELDIR)/%.o: %.cpp $(HEADERS)
 	$(CXX) -c $(CXXFLAGS) $(RELCXXFLAGS) -I $(INCLUDES) -o $@ $<
