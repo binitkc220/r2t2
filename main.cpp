@@ -49,8 +49,8 @@ const int img_height = static_cast<int>(img_width/aspect_ratio);
 int main(int argc, char** argv)
 {
     //Image
-    int samples_per_pixel = 100;
-    int max_depth = 16;
+    static int samples_per_pixel = 100;
+    static int max_depth = 16;
 
     if (argc == 3) {
         samples_per_pixel = atoi(argv[1]);
@@ -180,6 +180,9 @@ int main(int argc, char** argv)
 
         ImGui::SliderFloat("pwaal", &pwaal, 0.0001f, 3.0f);
         ImGui::SliderFloat("d2f", &d2f, 0.0001f, 1.0f);
+
+        ImGui::SliderInt("spp", &samples_per_pixel, 1, 32);
+        ImGui::SliderInt("depth", &max_depth, 1, 16);
 
         ImGui::End();
 
