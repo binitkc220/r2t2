@@ -64,10 +64,12 @@ int main(int argc, char** argv)
     auto world = random_scene();
 
     //Camera 30
-    point3 lookfrom(7, 2, 3);
+    point3 lookfrom(1000,30000,1000);
     point3 lookat(0,0,0);
     vec3 vup(0,1,0);
     camera cam(lookfrom, lookat);
+
+    color background(0.3,0.3,0.3);
 
     static float d2f=10.0f, pwaal=0.1f;
 
@@ -155,7 +157,7 @@ int main(int argc, char** argv)
                     auto u = (i + random_double()) / (img_width-1);
                     auto v = (j + random_double()) / (img_height-1);
                     ray r = cam.get_ray(u, v);
-                    render_frame_buffer[i*img_height+j] += rayColor(r, world, max_depth);
+                    render_frame_buffer[i*img_height+j] += rayColor(r, background, world, max_depth);
                     n_sampled[i*img_height+j] += 1.0;
                 }
             }

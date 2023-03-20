@@ -21,6 +21,7 @@ static inline hittable_list mesh(std::string objFile, std::string textureFile)
     auto material = make_shared<lambertian>(color(1, 0, 0));
     auto image = make_shared<image_texture>(textureFile);
     auto car = make_shared<lambertian>(image);
+    // auto car = make_shared<metal>(color(1,0,0),0.1);
 
     std::string inputfile = objFile;
     tinyobj::ObjReaderConfig reader_config;
