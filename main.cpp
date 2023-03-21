@@ -43,7 +43,7 @@
 const int SCREEN_HEIGHT = 720;
 const int SCREEN_WIDTH = 1280;
 const double aspect_ratio = 3.0 / 2.0;
-const int img_width = 400;
+const int img_width = 600;
 const int img_height = static_cast<int>(img_width/aspect_ratio);
 
 
@@ -64,14 +64,17 @@ int main(int argc, char** argv)
     auto world = random_scene();
 
     //Camera 30
-    point3 lookfrom(1000,30000,1000);
-    point3 lookat(0,0,0);
+    // point3 lookfrom(-6.07, -1.41, 14.29);
+    point3 lookfrom(-9.67, -4.70, 22.99);
+    point3 lookat(0, 4.0,0);
     vec3 vup(0,1,0);
     camera cam(lookfrom, lookat);
 
-    color background(0.3,0.3,0.3);
+    color background(135.0/255.0, 206.0/255.0, 235.0/255.0);
+    float background_imgui[4] = {float(background.x), float(background.y), float(background.z), 0};
 
-    static float d2f=10.0f, pwaal=0.1f;
+    static float d2f=50.0f, pwaal=0.1f;
+    static float translation_multiplier = 1.0f;
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) {
         return -1;
@@ -104,8 +107,8 @@ int main(int argc, char** argv)
     uint32_t *pixels;
 
     color *render_frame_buffer = (color*)malloc(sizeof(color)*img_height*img_width);
-    double *n_sampled = (double*) malloc(sizeof(double) * img_height * img_width);
-    bool start_render_anew = false;
+    double n_sampled = 0;
+    bool first_frame = false;
 
     std::cout << "P3\n" << img_width << " " << img_height << "\n255\n";
 
@@ -121,7 +124,7 @@ int main(int argc, char** argv)
             if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window))
                 done = true;
             if (event.type == SDL_KEYDOWN) {
-                start_render_anew = true;
+                first_frame = true;
                 if (event.key.keysym.sym == SDLK_s)
                     cam.rotate(0.04, 0, 0);
                 else if (event.key.keysym.sym == SDLK_w)
@@ -131,15 +134,15 @@ int main(int argc, char** argv)
                 else if (event.key.keysym.sym == SDLK_d)
                     cam.rotate(0, -0.00, -0.05);
                 else if (event.key.keysym.sym == SDLK_UP)
-                    cam.dolly(-1);
+                    cam.dolly(-1 * translation_multiplier);
                 else if (event.key.keysym.sym == SDLK_DOWN)
-                    cam.dolly(1);
+                    cam.dolly(1 * translation_multiplier);
                 else if (event.key.keysym.sym == SDLK_LEFT)
-                    cam.truck(-1);
+                    cam.truck(-1 * translation_multiplier);
                 else if (event.key.keysym.sym == SDLK_RIGHT)
-                    cam.truck(1);
+                    cam.truck(1 * translation_multiplier);
                 else
-                    start_render_anew = false;
+                    first_frame = false;
             }
         }
 
@@ -149,22 +152,22 @@ int main(int argc, char** argv)
         for (int j = img_height-1; j >= 0; --j) {
             // std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
             for (int i = 0; i < img_width; ++i) {
-                if (start_render_anew) {
+                if (first_frame) {
                     render_frame_buffer[i*img_height+j] = vec3();
-                    n_sampled[i*img_height+j] = 0.0;
+                    n_sampled = 0.0;
                 }
                 for (int s = 0; s < samples_per_pixel; ++s) {
                     auto u = (i + random_double()) / (img_width-1);
                     auto v = (j + random_double()) / (img_height-1);
                     ray r = cam.get_ray(u, v);
                     render_frame_buffer[i*img_height+j] += rayColor(r, background, world, max_depth);
-                    n_sampled[i*img_height+j] += 1.0;
                 }
             }
         }
 }
 
-        start_render_anew = false;
+        n_sampled += 1.0;
+        first_frame = false;
         int pitch;
         uint32_t format;
         SDL_QueryTexture(texture, &format, NULL, NULL, NULL);
@@ -174,9 +177,9 @@ int main(int argc, char** argv)
 
         for (int j = 0; j < img_height; ++j) {
             for (int i = 0; i < img_width; ++i) {
-                uint8_t red   = static_cast<uint8_t>(256.0 * clamp(render_frame_buffer[i*img_height+j].x / n_sampled[i*img_height+j], 0.0, 0.999));
-                uint8_t green = static_cast<uint8_t>(256.0 * clamp(render_frame_buffer[i*img_height+j].y / n_sampled[i*img_height+j], 0.0, 0.999));
-                uint8_t blue  = static_cast<uint8_t>(256.0 * clamp(render_frame_buffer[i*img_height+j].z / n_sampled[i*img_height+j], 0.0, 0.999));
+                uint8_t red   = static_cast<uint8_t>(256.0 * clamp(sqrt(render_frame_buffer[i*img_height+j].x / n_sampled), 0.0, 0.999));
+                uint8_t green = static_cast<uint8_t>(256.0 * clamp(sqrt(render_frame_buffer[i*img_height+j].y / n_sampled), 0.0, 0.999));
+                uint8_t blue  = static_cast<uint8_t>(256.0 * clamp(sqrt(render_frame_buffer[i*img_height+j].z / n_sampled), 0.0, 0.999));
                 j = img_height - j - 1;
                 pixels[j * img_width + i] = SDL_MapRGB(pixelFormat, red, green, blue);
             }
@@ -196,17 +199,27 @@ int main(int argc, char** argv)
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
         ImGui::Text("Last frame took %.0f ms.", static_cast<double>(time_diff)/1000.0);
 
-        ImGui::SliderFloat("pwaal", &pwaal, 0.0001f, 3.0f);
-        ImGui::SliderFloat("d2f", &d2f, 0.0001f, 1.0f);
 
-        ImGui::SliderInt("spp", &samples_per_pixel, 1, 32);
-        ImGui::SliderInt("depth", &max_depth, 1, 16);
+        if (ImGui::SliderInt("spp", &samples_per_pixel, 1, 32)) first_frame = true;
+        if (ImGui::SliderInt("depth", &max_depth, 1, 16)) first_frame = true;
+
+        if (ImGui::SliderFloat("aperture", &pwaal, 0.0001f, 3.0f)) first_frame = true;
+        if (ImGui::InputFloat("d2f", &d2f)) first_frame = true;
+
+        ImGui::InputFloat("translation speed", &translation_multiplier);
+
+        if (ImGui::ColorPicker4("background color", background_imgui)) first_frame = true;
+
+        ImGui::NewLine();
+
+        ImGui::Text("Camera center: %.2f, %.2f, %.2f.", cam.origin.x, cam.origin.y, cam.origin.z);
 
         ImGui::End();
 
         ImGui::Render();
 
         cam.set_camera_intrinsics(d2f, pwaal);
+        background = point3(background_imgui[0], background_imgui[1], background_imgui[2]);
 
         SDL_RenderSetScale(renderer, io.DisplayFramebufferScale.x, io.DisplayFramebufferScale.y);
         SDL_RenderCopy(renderer, texture, nullptr, nullptr);

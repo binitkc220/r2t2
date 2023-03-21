@@ -34,12 +34,13 @@ hittable_list random_scene() {
     // world.add(make_shared<sphere>(point3(-1.0,    0.0, -1.0),  -0.4, material_left));
     // world.add(make_shared<sphere>(point3( 1.0,    0.0, -1.0),   0.5, material_right));
 
-    std::string objFileLocation = "asset/obj/tilicholake.obj";
+    std::string objFileLocation = "asset/obj/tilicholake-3.obj";
     std::string textureFileLocation = "asset/texture_images/tilicholake.png";
     hittable_list obj_mesh = mesh(objFileLocation, textureFileLocation);
 
-    auto difflight = make_shared<diffuse_light>(color(10,10,10));
-    obj_mesh.add(make_shared<sphere>(point3(1000, 50000, 1000), 10000, difflight));
+    auto difflight = make_shared<diffuse_light>(color(20.0 * (250.0/255.0),20 * (253.0/255.0),20*(15.0/255.0)));
+    // obj_mesh.add(make_shared<sphere>(point3(1000, 50000, 1000), 10000, difflight));
+    obj_mesh.add(make_shared<sphere>(point3(16.29, 0, 20.59), 1, difflight));
 
     world.add(make_shared<bvh_node>(obj_mesh));
 
