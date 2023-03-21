@@ -43,7 +43,7 @@
 const int SCREEN_HEIGHT = 720;
 const int SCREEN_WIDTH = 1280;
 const double aspect_ratio = 3.0 / 2.0;
-const int img_width = 600;
+const int img_width = 800;
 const int img_height = static_cast<int>(img_width/aspect_ratio);
 
 
@@ -61,12 +61,14 @@ int main(int argc, char** argv)
     std::cerr << "Running with " << samples_per_pixel << " samples and depth " << max_depth << std::endl;
 
     //World
-    auto world = random_scene();
+    auto world = final_scene();
 
     //Camera 30
     // point3 lookfrom(-6.07, -1.41, 14.29);
-    point3 lookfrom(-9.67, -4.70, 22.99);
+    point3 lookfrom(18.20, 5.32, -43.26);
     point3 lookat(0, 4.0,0);
+    lookfrom = point3(878, 278, -1200);
+    lookat = point3(278, 278, 0);
     vec3 vup(0,1,0);
     camera cam(lookfrom, lookat);
 
@@ -204,7 +206,7 @@ int main(int argc, char** argv)
         if (ImGui::SliderInt("depth", &max_depth, 1, 16)) first_frame = true;
 
         if (ImGui::SliderFloat("aperture", &pwaal, 0.0001f, 3.0f)) first_frame = true;
-        if (ImGui::InputFloat("d2f", &d2f)) first_frame = true;
+        if (ImGui::SliderFloat("d2f", &d2f, 1, 1000)) first_frame = true;
 
         ImGui::InputFloat("translation speed", &translation_multiplier);
 
