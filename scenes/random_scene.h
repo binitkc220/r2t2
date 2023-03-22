@@ -53,7 +53,7 @@ hittable_list random_scene() {
     }
     world.add(make_shared<bvh_node>(obj_mesh));
 
-    return world;
+    return obj_mesh;
 }
 hittable_list final_scene() {
     auto ground = make_shared<lambertian>(color(0.48, 0.83, 0.53));

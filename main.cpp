@@ -111,6 +111,7 @@ int main(int argc, char** argv)
     color *render_frame_buffer = (color*)malloc(sizeof(color)*img_height*img_width);
     double n_sampled = 0;
     bool first_frame = false;
+    bool paused = false;
 
     std::cout << "P3\n" << img_width << " " << img_height << "\n255\n";
 
@@ -148,9 +149,10 @@ int main(int argc, char** argv)
             }
         }
 
-#pragma omp parallel
-{
-        #pragma omp for schedule(dynamic)
+if (paused){
+    SDL_Delay(50);
+} else {
+        #pragma omp parallel for schedule(dynamic)
         for (int j = img_height-1; j >= 0; --j) {
             // std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
             for (int i = 0; i < img_width; ++i) {
@@ -168,7 +170,8 @@ int main(int argc, char** argv)
         }
 }
 
-        n_sampled += 1.0;
+
+        if (!paused) n_sampled += 1.0;
         first_frame = false;
         int pitch;
         uint32_t format;
@@ -201,6 +204,7 @@ int main(int argc, char** argv)
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
         ImGui::Text("Last frame took %.0f ms.", static_cast<double>(time_diff)/1000.0);
 
+        ImGui::Checkbox("Pause", &paused);
 
         if (ImGui::SliderInt("spp", &samples_per_pixel, 1, 32)) first_frame = true;
         if (ImGui::SliderInt("depth", &max_depth, 1, 16)) first_frame = true;
