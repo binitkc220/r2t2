@@ -90,7 +90,7 @@ static inline hittable_list mesh(std::string objFile, std::string textureFile)
         }
     }
     world.add(make_shared<bvh_node>(objs));
-    return world;
+    return objs;
 }
 
 #endif

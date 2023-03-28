@@ -43,7 +43,7 @@
 const int SCREEN_HEIGHT = 720;
 const int SCREEN_WIDTH = 1280;
 const double aspect_ratio = 3.0 / 2.0;
-const int img_width = 800;
+const int img_width = 100;
 const int img_height = static_cast<int>(img_width/aspect_ratio);
 
 
@@ -53,7 +53,7 @@ int main(int argc, char** argv)
     static int samples_per_pixel = 100;
     static int max_depth = 16;
 
-    if (argc == 3) {
+    if (argc >= 3) {
         samples_per_pixel = atoi(argv[1]);
         max_depth = atoi(argv[2]);
     }
@@ -61,21 +61,19 @@ int main(int argc, char** argv)
     std::cerr << "Running with " << samples_per_pixel << " samples and depth " << max_depth << std::endl;
 
     //World
-    auto world = final_scene();
+    size_t time_diff = 0;
+    int n_time_diff_samples = 4;
 
     //Camera 30
-    // point3 lookfrom(-6.07, -1.41, 14.29);
-    point3 lookfrom(18.20, 5.32, -43.26);
+    point3 lookfrom(-9.67, -4.70, 22.99);
     point3 lookat(0, 4.0,0);
-    lookfrom = point3(878, 278, -1200);
-    lookat = point3(278, 278, 0);
     vec3 vup(0,1,0);
     camera cam(lookfrom, lookat);
 
     color background(135.0/255.0, 206.0/255.0, 235.0/255.0);
     float background_imgui[4] = {float(background.x), float(background.y), float(background.z), 0};
 
-    static float d2f=50.0f, pwaal=0.1f;
+    static float d2f=5050.0f, pwaal=0.01f;
     static float translation_multiplier = 1.0f;
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) {
@@ -113,11 +111,17 @@ int main(int argc, char** argv)
     bool first_frame = false;
     bool paused = false;
 
-    std::cout << "P3\n" << img_width << " " << img_height << "\n255\n";
+    size_t time_diff_average = 0;
+
+    // std::cout << "P3\n" << img_width << " " << img_height << "\n255\n";
 
     bool done = false;
-    while (!done) {
-        std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    for (int x = 0; x < n_time_diff_samples+2; x++) {
+        if (x == 2)
+        {
+            time_diff_average = 0;
+        }
+        auto world = random_scene(atoi(argv[3]), argv[4]);
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
@@ -149,10 +153,11 @@ int main(int argc, char** argv)
             }
         }
 
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 if (paused){
     SDL_Delay(50);
 } else {
-        #pragma omp parallel for schedule(dynamic)
+        // #pragma omp parallel for
         for (int j = img_height-1; j >= 0; --j) {
             // std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
             for (int i = 0; i < img_width; ++i) {
@@ -168,6 +173,9 @@ if (paused){
                 }
             }
         }
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    time_diff = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
+    time_diff_average += time_diff;
 }
 
 
@@ -192,8 +200,6 @@ if (paused){
 
         SDL_UnlockTexture(texture);
 
-        std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-        auto time_diff = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
         ImGui_ImplSDLRenderer_NewFrame();
         ImGui_ImplSDL2_NewFrame();
         ImGui::NewFrame();
@@ -235,10 +241,12 @@ if (paused){
 
     for (int j = img_height-1; j >= 0; --j) {
         for (int i = 0; i < img_width; ++i) {
-            writeColor(std::cout, render_frame_buffer[i*img_height+j], samples_per_pixel);
+            // writeColor(std::cout, render_frame_buffer[i*img_height+j], samples_per_pixel);
         }
     }
     std::cerr << std::endl;
+
+    std::cout << time_diff_average / n_time_diff_samples << " ";
 
     ImGui_ImplSDLRenderer_Shutdown();
     ImGui_ImplSDL2_Shutdown();
